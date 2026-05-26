@@ -1,0 +1,12 @@
+@OrdersApiHost = http://orders.localtest.me:8080
+
+POST {{OrdersApiHost}}/api/orders
+Content-Type: application/json
+
+{
+  "customerId": "demo-customer",
+  "sku": "bike-helmet",
+  "quantity": 2
+}
+
+###

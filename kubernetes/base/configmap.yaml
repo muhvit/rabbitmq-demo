@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-demo-config
+data:
+  RabbitMq__HostName: rabbitmq
+  RabbitMq__Port: "5672"
+  RabbitMq__VirtualHost: /
+  RabbitMq__ExchangeName: orders.exchange
+  RabbitMq__QueueName: shipping.orders
+  RabbitMq__RoutingKey: orders.submitted
+  ASPNETCORE_ENVIRONMENT: Production
+  ASPNETCORE_URLS: http://+:8080

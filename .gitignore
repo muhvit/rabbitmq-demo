@@ -35,9 +35,11 @@ ScaffoldingReadMe.txt
 *.nupkg
 # NuGet Symbol Packages
 *.snupkg
+.nuget/
 
 # dotenv environment variables file
 .env
+.dotnet/
 
 # Others
 ~$*
@@ -46,6 +48,7 @@ CodeCoverage/
 
 # MSBuild Binary and Structured Log
 *.binlog
+*.log
 
 # MSTest test Results
 [Tt]est[Rr]esult*/

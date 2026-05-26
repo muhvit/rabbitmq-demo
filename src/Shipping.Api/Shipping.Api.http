@@ -1,0 +1,6 @@
+@ShippingApiHost = http://shipping.localtest.me:8080
+
+GET {{ShippingApiHost}}/api/shipments
+Accept: application/json
+
+###

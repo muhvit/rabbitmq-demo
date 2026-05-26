@@ -1,0 +1,6 @@
+.git
+.dotnet
+.nuget
+**/bin
+**/obj
+README.md
