@@ -3,7 +3,7 @@
 Demonstrator project featuring two ASP.NET Core 10 services that exchange messages through RabbitMQ. The repository now supports two local demo modes:
 
 - a minimal `docker compose` setup that builds both APIs locally and runs everything on one Docker host
-- the existing `k3d` Kubernetes demo
+- a `k3d` Kubernetes demo bootstrapped with `terraform` and `terragrunt`
 
 ## Outcome
 
@@ -44,6 +44,10 @@ Message topology:
   End-to-end verification harness.
 - `infra/k3d/rabbitmq-demo.yaml`
   Local cluster definition.
+- `infra/terraform/modules/k3d-demo`
+  Terraform module that builds images, creates the K3d cluster, imports the images, and deploys the manifests.
+- `infra/live/dev/terragrunt.hcl`
+  Terragrunt entrypoint for the local development environment.
 - `kubernetes/base`
   Base Kubernetes manifests.
 - `kubernetes/overlays/local`
@@ -62,6 +66,8 @@ Message topology:
 - Docker Desktop or another local Docker engine usable by `k3d`
 - `kubectl`
 - `k3d`
+- `terraform`
+- `terragrunt`
 
 ## Local Build
 
@@ -161,39 +167,20 @@ docker compose down -v
 
 ## k3d Demo
 
-Build both web APIs as local Docker images:
+The Kubernetes demo is now managed by Terragrunt on top of Terraform. A single apply will:
+
+- build the local `orders-api` and `shipping-api` Docker images
+- create the K3d cluster defined in `infra/k3d/rabbitmq-demo.yaml`
+- import the images into that cluster
+- apply `kubernetes/overlays/local` and wait for all three deployments to roll out
+
+Create or update the dev environment:
 
 ```text
-docker build -t rabbitmq-demo/orders-api:dev -f src/Orders.Api/Dockerfile .
-docker build -t rabbitmq-demo/shipping-api:dev -f src/Shipping.Api/Dockerfile .
-```
-
-Create the local Kubernetes cluster defined in `infra/k3d/rabbitmq-demo.yaml`:
-
-```text
-k3d cluster create --config infra/k3d/rabbitmq-demo.yaml
-kubectl cluster-info
-kubectl config current-context
+terragrunt apply --working-dir infra/live/dev
 ```
 
 The cluster maps host port `8080` to the in-cluster ingress controller.
-
-Load the locally built images into the cluster:
-
-```text
-k3d image import rabbitmq-demo/orders-api:dev -c rabbitmq-demo
-k3d image import rabbitmq-demo/shipping-api:dev -c rabbitmq-demo
-```
-
-Apply the local overlay:
-
-```text
-kubectl apply -k kubernetes/overlays/local
-kubectl rollout status deployment/rabbitmq -n rabbitmq-demo
-kubectl rollout status deployment/orders-api -n rabbitmq-demo
-kubectl rollout status deployment/shipping-api -n rabbitmq-demo
-kubectl get pods,svc,ingress -n rabbitmq-demo
-```
 
 Ingress endpoints:
 
@@ -217,19 +204,10 @@ RabbitMQ management UI:
 
 ### k3d maintenance
 
-When either API changes:
+Reconcile the environment after application or manifest changes:
 
 ```text
-docker build -t rabbitmq-demo/orders-api:dev -f src/Orders.Api/Dockerfile .
-docker build -t rabbitmq-demo/shipping-api:dev -f src/Shipping.Api/Dockerfile .
-
-k3d image import rabbitmq-demo/orders-api:dev -c rabbitmq-demo
-k3d image import rabbitmq-demo/shipping-api:dev -c rabbitmq-demo
-
-kubectl rollout restart deployment/orders-api -n rabbitmq-demo
-kubectl rollout restart deployment/shipping-api -n rabbitmq-demo
-kubectl rollout status deployment/orders-api -n rabbitmq-demo
-kubectl rollout status deployment/shipping-api -n rabbitmq-demo
+terragrunt apply --working-dir infra/live/dev
 ```
 
 Useful day-to-day commands:
@@ -240,13 +218,13 @@ kubectl logs deployment/orders-api -n rabbitmq-demo
 kubectl logs deployment/shipping-api -n rabbitmq-demo
 kubectl logs deployment/rabbitmq -n rabbitmq-demo
 kubectl describe ingress rabbitmq-demo -n rabbitmq-demo
+terragrunt output --working-dir infra/live/dev
 ```
 
-Remove the workload:
+Remove the workload and cluster:
 
 ```text
-kubectl delete -k kubernetes/overlays/local
-k3d cluster delete rabbitmq-demo
+terragrunt destroy --working-dir infra/live/dev
 ```
 
 ## Known Limits

@@ -1,6 +1,16 @@
 .git
 .dotnet
 .nuget
+.terraform
+.terragrunt-cache
+terragrunt-cache
+*.tfstate
+*.tfstate.*
+**/.terraform
+**/.terragrunt-cache
+**/terragrunt-cache
+**/*.tfstate
+**/*.tfstate.*
 **/bin
 **/obj
 README.md

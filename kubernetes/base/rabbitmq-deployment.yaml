@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: rabbitmq
-          image: rabbitmq:3.13-management
+          image: rabbitmq:4.3.0-management-alpine
           imagePullPolicy: IfNotPresent
           ports:
             - name: amqp

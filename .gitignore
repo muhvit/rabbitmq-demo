@@ -45,6 +45,12 @@ ScaffoldingReadMe.txt
 ~$*
 *~
 CodeCoverage/
+.terraform/
+.terragrunt-cache/
+terragrunt-cache/
+*.tfstate
+*.tfstate.*
+crash.log
 
 # MSBuild Binary and Structured Log
 *.binlog
