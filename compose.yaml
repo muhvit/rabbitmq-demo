@@ -1,0 +1,65 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4.3.0-management-alpine
+    container_name: rabbitmq-demo-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: demo
+      RABBITMQ_DEFAULT_PASS: demo-password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  orders-api:
+    build:
+      context: .
+      dockerfile: src/Orders.Api/Dockerfile
+    image: rabbitmq-demo/orders-api:compose
+    container_name: rabbitmq-demo-orders-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__Port: 5672
+      RabbitMq__UserName: demo
+      RabbitMq__Password: demo-password
+      RabbitMq__VirtualHost: /
+      RabbitMq__ExchangeName: orders.exchange
+      RabbitMq__QueueName: shipping.orders
+      RabbitMq__RoutingKey: orders.submitted
+    ports:
+      - "8081:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  shipping-api:
+    build:
+      context: .
+      dockerfile: src/Shipping.Api/Dockerfile
+    image: rabbitmq-demo/shipping-api:compose
+    container_name: rabbitmq-demo-shipping-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__Port: 5672
+      RabbitMq__UserName: demo
+      RabbitMq__Password: demo-password
+      RabbitMq__VirtualHost: /
+      RabbitMq__ExchangeName: orders.exchange
+      RabbitMq__QueueName: shipping.orders
+      RabbitMq__RoutingKey: orders.submitted
+    ports:
+      - "8082:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  rabbitmq-data:
